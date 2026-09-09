@@ -1,5 +1,21 @@
 import {ErrorRequestHandler} from "express";
 import { AppError } from "../utils/appError";
+import { z ,ZodError} from "zod";
+import { Response } from "express";
+
+
+const formatZodError = (res: Response, error: z.ZodError) => {
+  const errors = error.issues.map((err) => ({
+    field: err.path.join("."),
+    message: err.message,
+  }));
+
+  return res.status(400).json({
+    message: "Validation error",
+    errors: errors,
+  });
+};
+
 
 export const errorHandler:ErrorRequestHandler= (error, req, res, next) : any =>{
 
@@ -9,6 +25,10 @@ export const errorHandler:ErrorRequestHandler= (error, req, res, next) : any =>{
         return res.status(400).json({
             message : "Invalid json format.  Please check your request body."
         })
+    }
+
+    if(error instanceof ZodError){
+        return formatZodError(res, error);
     }
 
     if(error instanceof AppError){

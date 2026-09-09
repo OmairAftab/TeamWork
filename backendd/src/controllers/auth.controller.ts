@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncmiddleware.middleware";
 import { config } from "../config/app.config";
-// import { registerSchema } from "../validation/auth.validation";
 import { HTTPSTATUS } from "../config/http.config";
 import { registerUserService } from "../services/auth.service";
 import passport from "passport";
+import { registerSchema } from "../validation/auth.validation";
 
 
 //AUTH.ROUTE.TS AND YE WALI FILE ABHI COMPLETE NHI KI
@@ -24,3 +24,19 @@ export const googleLoginCallback = asyncHandler(
     );
   }
 );
+
+
+
+export const registerUserController= asyncHandler(
+  async(req: Request, res: Response) => {
+    const body=registerSchema.parse({              //3. Validate the body with Zod as we set in auth.validation.ts
+      ...req.body
+    })
+
+    await registerUserService(body);
+
+    return res.status(201).json({
+      message: "User registered successfully",
+    });
+  }
+)
