@@ -9,6 +9,8 @@ import { asyncHandler } from "./middleware/asyncmiddleware.middleware";
 import { ErrorCodeEnum, ErrorCodeEnumType } from "./enums/error-code.enum";
 import { BadRequestException } from "./utils/appError";
 import { HTTPSTATUS } from "./config/http.config";
+import "./config/passport.config"
+import passport from "passport";
 
 const app=express();
 const BASE_PATH=config.BASE_PATH;
@@ -27,6 +29,14 @@ app.use(
         sameSite: "lax",
     })
 )
+
+
+
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+
 
 app.use(
     cors({
@@ -48,6 +58,11 @@ app.get(
     });
   })
 );
+
+
+import authRoutes from "./routes/auth.route";
+app.use(`${BASE_PATH}/auth`, authRoutes);
+
 
 
 //imported from middleware/errorhandler.config.ts
