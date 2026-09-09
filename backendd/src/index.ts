@@ -3,6 +3,7 @@ import express, {NextFunction, Request, Response} from "express";
 import {config} from "./config/app.config";
 import cors from "cors";
 import session from "cookie-session";
+import { connectDatabase } from "./config/database.config";
 
 
 
@@ -39,6 +40,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 
-app.listen(config.PORT, ()=>{
+app.listen(config.PORT, async ()=>{
     console.log(`Server is running on port ${config.PORT}`);
+    await connectDatabase();
 })
