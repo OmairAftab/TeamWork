@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncmiddleware.middleware";
-import { createWorkspaceService } from "../services/workspace.service";
+import { createWorkspaceService ,
+    getAllWorkspacesUserIsMemberService
+} from "../services/workspace.service";
+
 import { createWorkspaceSchema } from "../validation/workspace.validation";
 
 
@@ -21,3 +24,23 @@ export const createWorkspaceController = asyncHandler(
             workspace,
         });
     });
+
+
+
+
+
+
+// Controller: Get all workspaces the user is part of
+
+export const getAllWorkspacesUserIsMemberController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+
+    const { workspaces } = await getAllWorkspacesUserIsMemberService(userId);
+
+    return res.status(200).json({
+      message: "User workspaces fetched successfully",
+      workspaces,
+    });
+  }
+);

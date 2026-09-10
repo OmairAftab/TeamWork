@@ -68,19 +68,43 @@ export const createWorkspaceService = async (
 
 
 //********************************
-// GET WORKSPACES USER IS A MEMBER
+// GET ALL WORKSPACES IN WHICH USER IS A MEMBER
 //**************** **************/
 export const getAllWorkspacesUserIsMemberService = async (userId: string) => {
-  const memberships = await MemberModel.find({ userId })
-    .populate("workspaceId")
-    .select("-password")
-    .exec();
+  const memberships = await MemberModel.find({ userId })                      //MemberModel  represents a membership between a user and a workspace. HERE MongoDB finds all membership documents belonging to that user.
+    .populate("workspaceId")    //after populating Mongoose goes to the Workspace collection and gets the actual workspace document. and returns the workspace details instead of just the workspace ID.
+    .select("-password")        //Don't include the password field in the returned data.
+    .exec();                //This executes the Mongoose query and returns the result.
 
-  // Extract workspace details from memberships
+                                                                            //     now we have suppose:
+                                                                            //     [
+                                                                            //   {
+                                                                            //     "userId": "UserA",
+                                                                            //     "workspaceId": {
+                                                                            //       "_id": "W1",
+                                                                            //       "name": "Workspace 1"
+                                                                            //     }
+                                                                            //   },
+                                                                            //   {
+                                                                            //     "userId": "UserA",
+                                                                            //     "workspaceId": {
+                                                                            //       "_id": "W2",
+                                                                            //       "name": "Workspace 2"
+                                                                            //     }
+                                                                            //   }
+                                                                            // ]
+
+
+  // Extract only workspace details from memberships and ignore userId
   const workspaces = memberships.map((membership) => membership.workspaceId);
 
   return { workspaces };
 };
+
+
+
+
+
 
 export const getWorkspaceByIdService = async (workspaceId: string) => {
   const workspace = await WorkspaceModel.findById(workspaceId);
