@@ -11,6 +11,7 @@ import { BadRequestException } from "./utils/appError";
 import { HTTPSTATUS } from "./config/http.config";
 import "./config/passport.config"
 import passport from "passport";
+import isAuthenticated from "./middleware/isAuthenticated.middleware";
 
 const app=express();
 const BASE_PATH=config.BASE_PATH;
@@ -60,8 +61,15 @@ app.get(
 );
 
 
+
+
 import authRoutes from "./routes/auth.route";
 app.use(`${BASE_PATH}/auth`, authRoutes);
+
+
+
+import userRoutes from "./routes/user.route";
+app.use(`${BASE_PATH}/user`, isAuthenticated, userRoutes);
 
 
 

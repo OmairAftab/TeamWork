@@ -68,9 +68,12 @@ export const loginController = asyncHandler(
             return next(err); //if error occurs during login, it will pass the error to the next middleware, which is the error handler
           }
 
+          console.log("User logged in successfully:", user);
+          
           return res.status(HTTPSTATUS.OK).json({
             message: "Logged in successfully",
             user,
+            
           });
         });
       }
