@@ -106,3 +106,98 @@ export const updateTaskService = async (
 
   return { updatedTask };
 };
+
+
+
+
+
+
+
+
+
+
+
+//this service job is to Build the MongoDB query based on the filters and fetch the correct tasks.
+export const getAllTasksService = async (
+  workspaceId: string,
+  filters: {
+    projectId?: string;
+    status?: string[];
+    priority?: string[];
+    assignedTo?: string[];
+    keyword?: string;
+    dueDate?: string;
+  },
+  pagination: {
+    pageSize: number;
+    pageNumber: number;
+  }
+) => {
+
+  //suppose workspaceId = W123  then query = { workspace: "W123"};   meaning Only get tasks belonging to W123. ...this is base query
+  const query: Record<string, any> = {
+    workspace: workspaceId,
+  };
+
+  //if user also requested projectId lets say projectId = P123 then the query becomes : query = { workspace: "W123", project: "P123"}; Now MongoDB must find tasks matching both.
+  if (filters.projectId) {
+    query.project = filters.projectId;
+  }
+
+  if (filters.status && filters.status?.length > 0) {
+    query.status = { $in: filters.status };  //MongoDB $in means: value can be any one of these values.  So if filters.status = ["TODO", "IN_PROGRESS"] then query.status = { $in: ["TODO", "IN_PROGRESS"] } meaning MongoDB will find tasks whose status is either TODO or IN_PROGRESS.
+  }
+
+  if (filters.priority && filters.priority?.length > 0) {
+    query.priority = { $in: filters.priority };  //MongoDB $in means: value can be any one of these values.  So if filters.priority = ["HIGH", "MEDIUM"] then query.priority = { $in: ["HIGH", "MEDIUM"] } meaning MongoDB will find tasks whose priority is either HIGH or MEDIUM.
+  }
+
+  if (filters.assignedTo && filters.assignedTo?.length > 0) {
+    query.assignedTo = { $in: filters.assignedTo }; //MongoDB $in means: value can be any one of these values.  So if filters.assignedTo = ["U123", "U456"] then query.assignedTo = { $in: ["U123", "U456"] } meaning MongoDB will find tasks whose assignedTo is either U123 or U456.
+  }
+
+  if (filters.keyword && filters.keyword !== undefined) {
+    query.title = { $regex: filters.keyword, $options: "i" };  //MongoDB $regex means: find tasks whose title contains the keyword.  $options: "i" means case-insensitive search.  So if filters.keyword = "task" then query.title = { $regex: "task", $options: "i" } meaning MongoDB will find tasks whose title contains "task" or "Task" or "TASK" etc.
+  }
+
+  if (filters.dueDate) {
+    query.dueDate = {
+      $eq: new Date(filters.dueDate),
+    };
+  }
+
+  //Pagination Setup
+  const { pageSize, pageNumber } = pagination;
+  const skip = (pageNumber - 1) * pageSize;
+
+  const [tasks, totalCount] = await Promise.all([
+    TaskModel.find(query)
+      .skip(skip)
+      .limit(pageSize)
+      .sort({ createdAt: -1 })
+      .populate("assignedTo", "_id name profilePicture -password")
+      .populate("project", "_id emoji name"),
+    TaskModel.countDocuments(query),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  return {
+    tasks,
+    pagination: {
+      pageSize,
+      pageNumber,
+      totalCount,
+      totalPages,
+      skip,
+    },
+  };
+};
+
+
+
+
+
+
+
+

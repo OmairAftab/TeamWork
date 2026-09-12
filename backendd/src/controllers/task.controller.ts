@@ -7,7 +7,7 @@ import { workspaceIdSchema } from "../validation/workspace.validation";
 import { getMemberRoleInWorkspace } from "../services/member.service";
 import { roleGuard } from "../utils/roleGuard";
 import { createTaskSchema, taskIdSchema, updateTaskSchema } from "../validation/task.validation";
-import { createTaskService, updateTaskService } from "../services/task.service";
+import { createTaskService,getAllTasksService, updateTaskService } from "../services/task.service";
 
 
 export const createTaskController = asyncHandler(
@@ -66,3 +66,56 @@ export const updateTaskController = asyncHandler(
     });
   }
 );
+
+
+
+
+
+
+
+
+export const getAllTasksController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;  //Get the logged-in user's ID
+
+    const workspaceId = workspaceIdSchema.parse(req.params.workspaceId);
+
+    const filters = {
+      projectId: req.query.projectId as string | undefined,
+      
+      //suppose:      ?status=TODO,IN_PROGRESS then req.query.status is "TODO,IN_PROGRESS"   but .split(",") converts it into:  ["TODO", "IN_PROGRESS"] 
+      status: req.query.status
+        ? (req.query.status as string)?.split(",")
+        : undefined,
+
+        //for:      ?priority=HIGH,MEDIUM    you get ["HIGH", "MEDIUM"]  beacuse .split(",") converts it into: ["HIGH", "MEDIUM"]
+      priority: req.query.priority                       
+        ? (req.query.priority as string)?.split(",")
+        : undefined,
+      assignedTo: req.query.assignedTo
+        ? (req.query.assignedTo as string)?.split(",")
+        : undefined,
+      keyword: req.query.keyword as string | undefined,
+      dueDate: req.query.dueDate as string | undefined,
+    };
+
+    const pagination = {
+      pageSize: parseInt(req.query.pageSize as string) || 10,
+      pageNumber: parseInt(req.query.pageNumber as string) || 1,
+    };
+
+    const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
+    roleGuard(role, [Permissions.VIEW_ONLY]);
+
+    const result = await getAllTasksService(workspaceId, filters, pagination);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "All tasks fetched successfully",
+      ...result,
+    });
+  }
+);
+
+
+
+
