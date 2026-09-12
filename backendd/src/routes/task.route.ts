@@ -1,5 +1,5 @@
 import {Router} from "express";
-import { createTaskController , updateTaskController, getAllTasksController} from "../controllers/task.controller";
+import { createTaskController , updateTaskController, getAllTasksController, getTaskByIdController} from "../controllers/task.controller";
 
 const taskRoutes=Router();
 
@@ -10,6 +10,6 @@ taskRoutes.put("/:id/projects/:projectId/workspace/:workspaceId/update" , update
 
 taskRoutes.get("/workspace/:workspaceId/all" , getAllTasksController)
 
-// taskRoutes.get("/:id/projects/:projectId/workspace/:workspaceId/update" , getTaskBy)
+taskRoutes.get("/:id/projects/:projectId/workspace/:workspaceId" , getTaskByIdController)
 
 export default taskRoutes;
