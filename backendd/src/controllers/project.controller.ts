@@ -4,8 +4,8 @@ import { getMemberRoleInWorkspace } from "../services/member.service";
 import { roleGuard } from "../utils/roleGuard";
 import { Permissions } from "../enums/role.enum";
 import { HTTPSTATUS } from "../config/http.config";
-import { createProjectService, getProjectAnalyticsService, getProjectByIdAndWorkspaceIdService } from "../services/project.service";
-import { createProjectSchema, projectIdSchema } from "../validation/project.validation";
+import { createProjectService, updateProjectService, getProjectAnalyticsService, getProjectByIdAndWorkspaceIdService } from "../services/project.service";
+import { createProjectSchema, projectIdSchema , updateProjectSchema} from "../validation/project.validation";
 import { workspaceIdSchema } from "../validation/workspace.validation";
 import { getProjectsInWorkspaceService } from "../services/project.service";
 
@@ -112,6 +112,35 @@ export const getProjectAnalyticsController = asyncHandler(
     return res.status(HTTPSTATUS.OK).json({
       message: "Project analytics retrieved successfully",
       analytics,
+    });
+  }
+);
+
+
+
+
+
+export const updateProjectController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+
+    const projectId = projectIdSchema.parse(req.params.id);
+    const workspaceId = workspaceIdSchema.parse(req.params.workspaceId);
+
+    const body = updateProjectSchema.parse(req.body);
+
+    const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
+    roleGuard(role, [Permissions.EDIT_PROJECT]);
+
+    const { project } = await updateProjectService(
+      workspaceId,
+      projectId,
+      body
+    );
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Project updated successfully",
+      project,
     });
   }
 );
