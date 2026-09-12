@@ -106,6 +106,10 @@ export const getAllWorkspacesUserIsMemberService = async (userId: string) => {
 
 
 
+
+
+
+
 export const getWorkspaceByIdService = async (workspaceId: string) => {
   const workspace = await WorkspaceModel.findById(workspaceId);
 
@@ -118,7 +122,7 @@ export const getWorkspaceByIdService = async (workspaceId: string) => {
   }).populate("role");
 
   const workspaceWithMembers = {
-    ...workspace.toObject(),
+    ...workspace.toObject(),    //workspace is a Mongoose document...toObject() converts it into a normal JavaScript object.
     members,
   };
 
