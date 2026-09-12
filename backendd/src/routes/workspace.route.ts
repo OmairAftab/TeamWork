@@ -9,11 +9,14 @@ workspaceRoutes.post("/create/new", createWorkspaceController);
 
 workspaceRoutes.get("/all", getAllWorkspacesUserIsMemberController); 
 
-workspaceRoutes.get("/:id", getWorkspaceByIdController); // Assuming you have a controller for fetching a workspace by ID   
+workspaceRoutes.get("/:id", getWorkspaceByIdController); 
 
-workspaceRoutes.get("/members/:id", getAllMembersOfWorkspaceController); // Assuming you have a controller for fetching a workspace by ID   
+workspaceRoutes.get("/members/:id", getAllMembersOfWorkspaceController);  
 
-workspaceRoutes.get("/analytics/:id", getWorkspaceAnalyticsController); // Assuming you have a controller for fetching a workspace by ID   
+workspaceRoutes.get("/analytics/:id", getWorkspaceAnalyticsController); 
+
+
+// workspaceRoutes.put("/change/member/role/:id", changeWorkspaceMemberRoleController); 
 
 
 export default workspaceRoutes;

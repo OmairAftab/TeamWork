@@ -2,11 +2,11 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncmiddleware.middleware";
 import { createWorkspaceService ,
     getAllWorkspacesUserIsMemberService} from "../services/workspace.service";
-import { getWorkspaceByIdService , getWorkspaceMembersService, getWorkspaceAnalyticsService} from "../services/workspace.service";
+import { getWorkspaceByIdService , getWorkspaceMembersService, getWorkspaceAnalyticsService, changeMemberRoleService} from "../services/workspace.service";
 import {
          createWorkspaceSchema,
-         workspaceIdSchema
- 
+         workspaceIdSchema,
+          changeRoleSchema
         } from "../validation/workspace.validation";
 import { getMemberRoleInWorkspace } from "../services/member.service";
 import { roleGuard } from "../utils/roleGuard";
@@ -79,6 +79,9 @@ export const getWorkspaceByIdController = asyncHandler(
 
 
 
+
+
+
 export const getAllMembersOfWorkspaceController = asyncHandler(
   async (req: Request, res: Response) => {
     const workspaceId = workspaceIdSchema.parse(req.params.id);
@@ -120,6 +123,37 @@ export const getWorkspaceAnalyticsController = asyncHandler(
     return res.status(200).json({
       message: "Workspace analytics retrieved successfully",
       analytics,
+    });
+  }
+);
+
+
+
+
+
+
+
+
+
+export const changeWorkspaceMemberRoleController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const workspaceId = workspaceIdSchema.parse(req.params.id);
+    const { memberId, roleId } = changeRoleSchema.parse(req.body);
+
+    const userId = req.user?._id;
+
+    const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
+    roleGuard(role, [Permissions.CHANGE_MEMBER_ROLE]);
+
+    const { member } = await changeMemberRoleService(
+      workspaceId,
+      memberId,
+      roleId
+    );
+
+    return res.status(200).json({
+      message: "Member Role changed successfully",
+      member,
     });
   }
 );
