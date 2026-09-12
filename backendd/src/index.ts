@@ -87,6 +87,10 @@ import projectRoutes from "./routes/project.route";
 app.use(`${BASE_PATH}/project`, isAuthenticated, projectRoutes);
 
 
+import taskRoutes from "./routes/task.route";
+app.use(`${BASE_PATH}/task`, isAuthenticated, taskRoutes);
+
+
 
 
 //imported from middleware/errorhandler.config.ts
