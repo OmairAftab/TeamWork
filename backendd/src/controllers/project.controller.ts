@@ -4,7 +4,7 @@ import { getMemberRoleInWorkspace } from "../services/member.service";
 import { roleGuard } from "../utils/roleGuard";
 import { Permissions } from "../enums/role.enum";
 import { HTTPSTATUS } from "../config/http.config";
-import { createProjectService, updateProjectService, getProjectAnalyticsService, getProjectByIdAndWorkspaceIdService } from "../services/project.service";
+import { createProjectService,deleteProjectService, updateProjectService, getProjectAnalyticsService, getProjectByIdAndWorkspaceIdService } from "../services/project.service";
 import { createProjectSchema, projectIdSchema , updateProjectSchema} from "../validation/project.validation";
 import { workspaceIdSchema } from "../validation/workspace.validation";
 import { getProjectsInWorkspaceService } from "../services/project.service";
@@ -141,6 +141,31 @@ export const updateProjectController = asyncHandler(
     return res.status(HTTPSTATUS.OK).json({
       message: "Project updated successfully",
       project,
+    });
+  }
+);
+
+
+
+
+
+
+
+
+export const deleteProjectController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.user?._id;
+
+    const projectId = projectIdSchema.parse(req.params.id);
+    const workspaceId = workspaceIdSchema.parse(req.params.workspaceId);
+
+    const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
+    roleGuard(role, [Permissions.DELETE_PROJECT]);
+
+    await deleteProjectService(workspaceId, projectId);
+
+    return res.status(HTTPSTATUS.OK).json({
+      message: "Project deleted successfully",
     });
   }
 );

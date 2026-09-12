@@ -1,5 +1,5 @@
 import {Router} from "express";
-import { createProjectController , getAllProjectsInaWorkspaceController, getProjectAnalyticsController,  updateProjectController,getProjectByIdAndWorkspaceIdController} from "../controllers/project.controller";
+import { createProjectController , getAllProjectsInaWorkspaceController,deleteProjectController, getProjectAnalyticsController,  updateProjectController,getProjectByIdAndWorkspaceIdController} from "../controllers/project.controller";
 
 const projectRoutes=Router();
 
@@ -13,5 +13,7 @@ projectRoutes.get("/:id/workspace/:workspaceId",  getProjectByIdAndWorkspaceIdCo
 projectRoutes.get("/:id/workspace/:workspaceId/analytics",  getProjectAnalyticsController);
 
 projectRoutes.put("/:id/workspace/:workspaceId/update",  updateProjectController);
+
+projectRoutes.delete("/:id/workspace/:workspaceId/delete",  deleteProjectController);
 
 export default projectRoutes;
