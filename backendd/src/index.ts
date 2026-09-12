@@ -78,6 +78,11 @@ app.use(`${BASE_PATH}/workspace`, isAuthenticated, workspaceRoutes);
 
 
 
+import memberRoutes from "./routes/member.route";
+app.use(`${BASE_PATH}/member`, isAuthenticated, memberRoutes);
+
+
+
 //imported from middleware/errorhandler.config.ts
 app.use(errorHandler);
 
