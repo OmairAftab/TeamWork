@@ -230,3 +230,31 @@ export const getTaskByIdService = async (
 
 
 
+
+
+
+
+
+
+export const deleteTaskService = async (
+  workspaceId: string,
+  taskId: string
+) => {
+  const task = await TaskModel.findOneAndDelete({
+    _id: taskId,
+    workspace: workspaceId,
+  });
+
+  if (!task) {
+    throw new NotFoundException(
+      "Task not found or does not belong to the specified workspace"
+    );
+  }
+
+  return;
+};
+
+
+
+
+
