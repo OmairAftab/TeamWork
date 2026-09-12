@@ -140,8 +140,14 @@ export const getWorkspaceByIdService = async (workspaceId: string) => {
 
 
 
+
+
 //********************************
-// GET ALL MEMEBERS IN WORKSPACE
+// This service gets two things for a workspace:
+
+// All the members of that workspace, including their user information and role name.
+// All available roles, but only their name and _id.
+
 //**************** **************/
 
 export const getWorkspaceMembersService = async (workspaceId: string) => {
@@ -150,12 +156,15 @@ export const getWorkspaceMembersService = async (workspaceId: string) => {
   const members = await MemberModel.find({
     workspaceId,
   })
-    .populate("userId", "name email profilePicture -password")
-    .populate("role", "name");
+    .populate("userId", "name email profilePicture -password") //Instead of returning only the user's ObjectId, // fetch the user's name, email and profile picture.// "-password" makes sure password is not included.
+    .populate("role", "name"); //// Populate the role field. // Instead of returning only the role's ObjectId, // fetch only the role's name.
 
+
+  // Get all roles from the Role collection.// Only return the name and _id of each role.
   const roles = await RoleModel.find({}, { name: 1, _id: 1 })
-    .select("-permission")
-    .lean();
+    .select("-permission")  // Exclude the permission field from the result
+    .lean();     // Convert Mongoose documents into normal JavaScript objects.
+
 
   return { members, roles };
 };
