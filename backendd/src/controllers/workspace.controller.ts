@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../middleware/asyncmiddleware.middleware";
 import { createWorkspaceService ,
     getAllWorkspacesUserIsMemberService} from "../services/workspace.service";
-import { getWorkspaceByIdService , getWorkspaceMembersService, getWorkspaceAnalyticsService, changeMemberRoleService, updateWorkspaceByIdService} from "../services/workspace.service";
+import { getWorkspaceByIdService , deleteWorkspaceService,  getWorkspaceMembersService, getWorkspaceAnalyticsService, changeMemberRoleService, updateWorkspaceByIdService} from "../services/workspace.service";
 import {
          createWorkspaceSchema,
          workspaceIdSchema,
@@ -184,6 +184,33 @@ export const updateWorkspaceByIdController = asyncHandler(
     return res.status(200).json({
       message: "Workspace updated successfully",
       workspace,
+    });
+  }
+);
+
+
+
+
+
+
+
+export const deleteWorkspaceByIdController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const workspaceId = workspaceIdSchema.parse(req.params.id);
+
+    const userId = req.user?._id;
+
+    const { role } = await getMemberRoleInWorkspace(userId, workspaceId);
+    roleGuard(role, [Permissions.DELETE_WORKSPACE]);
+
+    const { currentWorkspace } = await deleteWorkspaceService(
+      workspaceId,
+      userId
+    );
+
+    return res.status(200).json({
+      message: "Workspace deleted successfully",
+      currentWorkspace,
     });
   }
 );

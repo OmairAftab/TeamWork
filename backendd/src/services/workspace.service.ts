@@ -281,18 +281,21 @@ export const deleteWorkspaceService = async (
   workspaceId: string,
   userId: string
 ) => {
+
+  //create a MongoDB session and start a transaction.
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
     const workspace = await WorkspaceModel.findById(workspaceId).session(
-      session
+      session //The .session(session) means: Perform this database operation as part of our transaction.
     );
     if (!workspace) {
       throw new NotFoundException("Workspace not found");
     }
 
     // Check if the user owns the workspace
+    //Does the owner of this workspace equal the current user's ID?if yes then he's allowed to delete otherwise not
     if (!workspace.owner.equals(new mongoose.Types.ObjectId(userId))) { 
       throw new BadRequestException(
         "You are not authorized to delete this workspace"
@@ -304,16 +307,22 @@ export const deleteWorkspaceService = async (
       throw new NotFoundException("User not found");
     }
 
+
+    //This deletes all projects belonging to this workspace.
     await ProjectModel.deleteMany({ workspace: workspace._id }).session(
       session
     );
     await TaskModel.deleteMany({ workspace: workspace._id }).session(session);
 
+
+//This removes all membership records associated with the workspace.
     await MemberModel.deleteMany({
       workspaceId: workspace._id,
     }).session(session);
 
-    // Update the user's currentWorkspace if it matches the deleted workspace
+    
+
+// Is the workspace we're deleting currently selected as this user's currentWorkspace?..Then you need to change the user's currentWorkspace, because it can't continue pointing to a workspace that no longer exists.
     if (user?.currentWorkspace?.equals(workspaceId)) {
       const memberWorkspace = await MemberModel.findOne({ userId }).session(
         session
