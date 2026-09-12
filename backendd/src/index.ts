@@ -83,6 +83,12 @@ app.use(`${BASE_PATH}/member`, isAuthenticated, memberRoutes);
 
 
 
+import projectRoutes from "./routes/project.route";
+app.use(`${BASE_PATH}/project`, isAuthenticated, projectRoutes);
+
+
+
+
 //imported from middleware/errorhandler.config.ts
 app.use(errorHandler);
 
