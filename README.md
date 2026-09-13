@@ -92,7 +92,7 @@ TeamWork/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/TeamWork.git
+git clone https://github.com/OmairAftab/TeamWork.git
 cd TeamWork
 ```
 
@@ -146,31 +146,3 @@ cd TeamWork
 4. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
-
-## ☁️ Deployment (Vercel)
-
-Both frontend and backend are configured for one-click deployment on [Vercel](https://vercel.com).
-
-### Backend (`backendd`)
-- **Root Directory**: `backendd`
-- **Framework Preset**: `Other`
-- **Environment Variables**:
-  - `NODE_ENV`: `production`
-  - `MONGO_URI`: `mongodb+srv://...`
-  - `SESSION_SECRET`: `your_session_secret`
-  - `FRONTEND_ORIGIN`: `https://your-client.vercel.app`
-  - `GOOGLE_CLIENT_ID`: `...`
-  - `GOOGLE_CLIENT_SECRET`: `...`
-  - `GOOGLE_CALLBACK_URL`: `https://your-backend.vercel.app/api/auth/google/callback`
-  - `FRONTEND_GOOGLE_CALLBACK_URL`: `https://your-client.vercel.app/google/oauth/callback`
-
-### Frontend (`client`)
-- **Root Directory**: `client`
-- **Framework Preset**: `Vite`
-- **Environment Variables**:
-  - `API_BASE_URL`: `https://your-backend.vercel.app/api`
-
----
-
-## 📄 License
-This project is licensed under the ISC License.
