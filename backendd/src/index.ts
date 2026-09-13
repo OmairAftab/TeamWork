@@ -57,12 +57,9 @@ app.use(async (req, res, next) => {
 app.get(
   `/`,
   asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    throw new BadRequestException(
-      "This is a bad request",
-      ErrorCodeEnum.AUTH_INVALID_TOKEN
-    );
     return res.status(HTTPSTATUS.OK).json({
-      message: "Hello Subscribe to the channel & share",
+      message: "TeamWork API is running smoothly!",
+      status: "OK",
     });
   })
 );
