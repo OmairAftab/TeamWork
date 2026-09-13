@@ -21,8 +21,21 @@ import {
 import { Input } from "@/components/ui/input";
 import Logo from "@/components/logo";
 import GoogleOauthButton from "@/components/auth/google-oauth-button";
+import { registerMutationFn } from "@/lib/api";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "@/hooks/use-toast";
+import {useNavigate} from "react-router-dom";
+import { Loader } from "lucide-react"; 
+
 
 const SignUp = () => {
+
+  const navigate = useNavigate();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: registerMutationFn,
+  });
+  
   const formSchema = z.object({
     name: z.string().trim().min(1, {
       message: "Name is required",
@@ -44,9 +57,32 @@ const SignUp = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+
+
+
+
+ const onSubmit = (values: z.infer<typeof formSchema>) => {
+    if (isPending) return;
+    mutate(values, {
+      onSuccess: () => {
+        navigate("/");
+      },
+      onError: (error) => {
+        console.log(error);
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
   };
+
+
+
+
+
+
 
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
@@ -56,7 +92,7 @@ const SignUp = () => {
           className="flex items-center gap-2 self-center font-medium"
         >
           <Logo />
-          Team Sync.
+          Team Work.
         </Link>
         <div className="flex flex-col gap-6">
           <Card>
@@ -145,7 +181,8 @@ const SignUp = () => {
                           )}
                         />
                       </div>
-                      <Button type="submit" className="w-full">
+                      <Button type="submit" disabled={isPending} className="w-full">
+                        {isPending && <Loader className="animate-spin" />}
                         Sign up
                       </Button>
                     </div>
