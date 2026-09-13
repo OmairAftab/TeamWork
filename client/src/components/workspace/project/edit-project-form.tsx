@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,14 +20,27 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "../../ui/textarea";
 import EmojiPickerComponent from "@/components/emoji-picker";
 import { ProjectType } from "@/types/api.type";
+import useWorkspaceId from "@/hooks/use-workspace-id";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { editProjectMutationFn } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
+import { Loader } from "lucide-react";
 
 export default function EditProjectForm(props: {
   project?: ProjectType;
   onClose: () => void;
 }) {
-  const { onClose } = props;
+  const { project, onClose } = props;
+  const workspaceId = useWorkspaceId();
+  const queryClient = useQueryClient();
 
-  const [emoji, setEmoji] = useState("📊");
+  const [emoji, setEmoji] = useState(project?.emoji || "📊");
+
+  useEffect(() => {
+    if (project?.emoji) {
+      setEmoji(project.emoji);
+    }
+  }, [project]);
 
   const formSchema = z.object({
     name: z.string().trim().min(1, {
@@ -39,18 +52,59 @@ export default function EditProjectForm(props: {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      name: project?.name || "",
+      description: project?.description || "",
     },
   });
+
+  useEffect(() => {
+    if (project) {
+      form.reset({
+        name: project.name || "",
+        description: project.description || "",
+      });
+    }
+  }, [project, form]);
 
   const handleEmojiSelection = (emoji: string) => {
     setEmoji(emoji);
   };
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: editProjectMutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["project", workspaceId, project?._id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["workspaceProjects", workspaceId],
+      });
+      toast({
+        title: "Success",
+        description: "Project updated successfully",
+      });
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update project",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    onClose();
+    if (!workspaceId || !project?._id || isPending) return;
+    mutate({
+      workspaceId,
+      projectId: project._id,
+      data: {
+        emoji,
+        name: values.name,
+        description: values.description,
+      },
+    });
   };
 
   return (
@@ -77,6 +131,7 @@ export default function EditProjectForm(props: {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
+                    type="button"
                     className="font-normal size-[60px] !p-2 !shadow-none mt-2 items-center rounded-full "
                   >
                     <span className="text-4xl">{emoji}</span>
@@ -130,10 +185,12 @@ export default function EditProjectForm(props: {
             </div>
 
             <Button
-              className="flex place-self-end  h-[40px] text-white font-semibold"
+              className="flex place-self-end h-[40px] text-white font-semibold"
+              disabled={isPending}
               type="submit"
             >
-              Create
+              {isPending && <Loader className="animate-spin mr-2 w-4 h-4" />}
+              Save Changes
             </Button>
           </form>
         </Form>

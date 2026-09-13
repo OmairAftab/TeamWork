@@ -266,3 +266,28 @@ export type AllTaskResponseType = {
   tasks: TaskType[];
   pagination: PaginationType;
 };
+
+export type EditTaskPayloadType = {
+  taskId: string;
+  projectId: string;
+  workspaceId: string;
+  data: {
+    title: string;
+    description?: string;
+    priority: TaskPriorityEnumType;
+    status: TaskStatusEnumType;
+    assignedTo?: string | null;
+    dueDate?: string;
+  };
+};
+
+export type DeleteTaskPayloadType = {
+  taskId: string;
+  workspaceId: string;
+};
+
+export type DeleteWorkspaceResponseType = {
+  message: string;
+  currentWorkspace: string;
+};
+

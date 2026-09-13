@@ -8,6 +8,13 @@ import { X } from "lucide-react";
 import { DataTableFacetedFilter } from "./table/table-faceted-filter";
 import { priorities, statuses } from "./table/data";
 import useTaskTableFilter from "@/hooks/use-task-table-filter";
+import useWorkspaceId from "@/hooks/use-workspace-id";
+import { useQuery } from "@tanstack/react-query";
+import {
+  getAllMembersInWorkspaceQueryFn,
+  getAllTasksQueryFn,
+  getProjectsInWorkspaceQueryFn,
+} from "@/lib/api";
 
 type Filters = ReturnType<typeof useTaskTableFilter>[0];
 type SetFilters = ReturnType<typeof useTaskTableFilter>[1];
@@ -22,6 +29,7 @@ interface DataTableFilterToolbarProps {
 const TaskTable = () => {
   const param = useParams();
   const projectId = param.projectId as string;
+  const workspaceId = useWorkspaceId();
 
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -29,13 +37,41 @@ const TaskTable = () => {
   const [filters, setFilters] = useTaskTableFilter();
   const columns = getColumns(projectId);
 
-  const totalCount = 0;
+  const activeProjectId = projectId || filters.projectId || undefined;
+
+  const { data, isLoading } = useQuery({
+    queryKey: [
+      "workspaceTasks",
+      workspaceId,
+      activeProjectId,
+      filters.keyword,
+      filters.status,
+      filters.priority,
+      filters.assigneeId,
+      pageNumber,
+      pageSize,
+    ],
+    queryFn: () =>
+      getAllTasksQueryFn({
+        workspaceId,
+        projectId: activeProjectId,
+        keyword: filters.keyword,
+        status: filters.status,
+        priority: filters.priority,
+        assignedTo: filters.assigneeId,
+        pageNumber,
+        pageSize,
+      }),
+    enabled: !!workspaceId,
+  });
+
+  const tasks = data?.tasks || [];
+  const totalCount = data?.pagination?.totalCount || 0;
 
   const handlePageChange = (page: number) => {
     setPageNumber(page);
   };
 
-  // Handle page size changes
   const handlePageSizeChange = (size: number) => {
     setPageSize(size);
   };
@@ -43,8 +79,8 @@ const TaskTable = () => {
   return (
     <div className="w-full relative">
       <DataTable
-        isLoading={false}
-        data={[]}
+        isLoading={isLoading}
+        data={tasks}
         columns={columns}
         onPageChange={handlePageChange}
         onPageSizeChange={handlePageSizeChange}
@@ -55,7 +91,7 @@ const TaskTable = () => {
         }}
         filtersToolbar={
           <DataTableFilterToolbar
-            isLoading={false}
+            isLoading={isLoading}
             projectId={projectId}
             filters={filters}
             setFilters={setFilters}
@@ -72,13 +108,31 @@ const DataTableFilterToolbar: FC<DataTableFilterToolbarProps> = ({
   filters,
   setFilters,
 }) => {
-  //const workspaceId = useWorkspaceId();
+  const workspaceId = useWorkspaceId();
 
-  //Workspace Projects
-  //const projectOptions = [];
+  // Fetch projects for filter dropdown
+  const { data: projectsData } = useQuery({
+    queryKey: ["workspaceProjects", workspaceId],
+    queryFn: () => getProjectsInWorkspaceQueryFn({ workspaceId, pageSize: 100 }),
+    enabled: !!workspaceId && !projectId,
+  });
 
-  // Workspace Memebers
-  //const assignees = []
+  // Fetch members for assignee filter dropdown
+  const { data: membersData } = useQuery({
+    queryKey: ["workspaceMembers", workspaceId],
+    queryFn: () => getAllMembersInWorkspaceQueryFn(workspaceId),
+    enabled: !!workspaceId,
+  });
+
+  const projectOptions = (projectsData?.projects || []).map((p) => ({
+    label: `${p.emoji || "📊"} ${p.name}`,
+    value: p._id,
+  }));
+
+  const assigneeOptions = (membersData?.members || []).map((m) => ({
+    label: m.userId?.name || "Member",
+    value: m.userId?._id,
+  }));
 
   const handleFilterChange = (key: keyof Filters, values: string[]) => {
     setFilters({
@@ -88,13 +142,13 @@ const DataTableFilterToolbar: FC<DataTableFilterToolbarProps> = ({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row w-full items-start space-y-2 mb-2 lg:mb-0 lg:space-x-2  lg:space-y-0">
+    <div className="flex flex-col lg:flex-row w-full items-start space-y-2 mb-2 lg:mb-0 lg:space-x-2 lg:space-y-0">
       <Input
         placeholder="Filter tasks..."
         value={filters.keyword || ""}
         onChange={(e) =>
           setFilters({
-            keyword: e.target.value,
+            keyword: e.target.value || null,
           })
         }
         className="h-8 w-full lg:w-[250px]"
@@ -123,7 +177,7 @@ const DataTableFilterToolbar: FC<DataTableFilterToolbarProps> = ({
       <DataTableFacetedFilter
         title="Assigned To"
         multiSelect={true}
-        options={[]}
+        options={assigneeOptions}
         disabled={isLoading}
         selectedValues={filters.assigneeId?.split(",") || []}
         onFilterChange={(values) => handleFilterChange("assigneeId", values)}
@@ -133,7 +187,7 @@ const DataTableFilterToolbar: FC<DataTableFilterToolbarProps> = ({
         <DataTableFacetedFilter
           title="Projects"
           multiSelect={false}
-          options={[]}
+          options={projectOptions}
           disabled={isLoading}
           selectedValues={filters.projectId?.split(",") || []}
           onFilterChange={(values) => handleFilterChange("projectId", values)}
@@ -158,7 +212,7 @@ const DataTableFilterToolbar: FC<DataTableFilterToolbarProps> = ({
           }
         >
           Reset
-          <X />
+          <X className="ml-1 w-4 h-4" />
         </Button>
       )}
     </div>

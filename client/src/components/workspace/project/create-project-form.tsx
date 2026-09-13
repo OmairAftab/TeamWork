@@ -19,9 +19,18 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useState } from "react";
+import useWorkspaceId from "@/hooks/use-workspace-id";
+import useCreateProjectDialog from "@/hooks/use-create-project-dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createProjectMutationFn } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
+import { Loader } from "lucide-react";
 
 export default function CreateProjectForm() {
   const [emoji, setEmoji] = useState("📊");
+  const workspaceId = useWorkspaceId();
+  const { onClose } = useCreateProjectDialog();
+  const queryClient = useQueryClient();
 
   const formSchema = z.object({
     name: z.string().trim().min(1, {
@@ -42,8 +51,35 @@ export default function CreateProjectForm() {
     setEmoji(emoji);
   };
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: createProjectMutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaceProjects", workspaceId] });
+      toast({
+        title: "Success",
+        description: "Project created successfully",
+      });
+      onClose();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create project",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    if (!workspaceId || isPending) return;
+    mutate({
+      workspaceId,
+      data: {
+        emoji,
+        name: values.name,
+        description: values.description,
+      },
+    });
   };
 
   return (
@@ -70,6 +106,7 @@ export default function CreateProjectForm() {
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
+                    type="button"
                     className="font-normal size-[60px] !p-2 !shadow-none mt-2 items-center rounded-full "
                   >
                     <span className="text-4xl">{emoji}</span>
@@ -127,9 +164,11 @@ export default function CreateProjectForm() {
             </div>
 
             <Button
-              className="flex place-self-end  h-[40px] text-white font-semibold"
+              className="flex place-self-end h-[40px] text-white font-semibold"
+              disabled={isPending}
               type="submit"
             >
+              {isPending && <Loader className="animate-spin mr-2 w-4 h-4" />}
               Create
             </Button>
           </form>

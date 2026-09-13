@@ -1,22 +1,27 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuthContext } from "@/context/auth-provider";
 import { Loader } from "lucide-react";
 
 const WorkspaceHeader = () => {
-  const isLoading = false;
+  const { workspace, workspaceLoading } = useAuthContext();
+
+  const workspaceName = workspace?.name || "Workspace";
+  const initial = workspaceName.charAt(0).toUpperCase();
+
   return (
     <div className="w-full max-w-3xl mx-auto pb-2">
-      {isLoading ? (
+      {workspaceLoading ? (
         <Loader className="w-8 h-8 animate-spin" />
       ) : (
         <div className="flex items-center gap-4">
-          <Avatar className="size-[60px] rounded-lg font-bold ">
-            <AvatarFallback className="rounded-lg bg-gradient-to-tl text-[35px]  to-black from-black text-white">
-              W
+          <Avatar className="size-[60px] rounded-lg font-bold">
+            <AvatarFallback className="rounded-lg bg-gradient-to-tl text-[35px] to-black from-black text-white">
+              {initial}
             </AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left leading-tight">
-            <span className="truncate font-semibold text-xl">Test Co</span>
-            <span className="truncate text-sm">Free</span>
+            <span className="truncate font-semibold text-xl">{workspaceName}</span>
+            <span className="truncate text-sm text-muted-foreground">Workspace</span>
           </div>
         </div>
       )}

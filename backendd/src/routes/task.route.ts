@@ -12,6 +12,6 @@ taskRoutes.get("/workspace/:workspaceId/all" , getAllTasksController)
 
 taskRoutes.get("/:id/projects/:projectId/workspace/:workspaceId" , getTaskByIdController)
 
-taskRoutes.delete("/:id/workspace/:workspaceId/delete" , getTaskByIdController)
+taskRoutes.delete("/:id/workspace/:workspaceId/delete" , deleteTaskController)
 
 export default taskRoutes;

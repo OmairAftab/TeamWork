@@ -7,16 +7,44 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { logoutMutationFn } from "@/lib/api";
+import { useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+import { Loader } from "lucide-react";
 
 const LogoutDialog = (props: {
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { isOpen, setIsOpen } = props;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  // Handle logout action
-  const handleLogout = useCallback(() => {}, []);
+  const { mutate: logout, isPending } = useMutation({
+    mutationFn: logoutMutationFn,
+    onSuccess: () => {
+      queryClient.clear();
+      setIsOpen(false);
+      navigate("/");
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to log out",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -29,10 +57,21 @@ const LogoutDialog = (props: {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button type="button" onClick={handleLogout}>
+            <Button
+              type="button"
+              disabled={isPending}
+              onClick={handleLogout}
+              variant="destructive"
+            >
+              {isPending && <Loader className="animate-spin mr-2 w-4 h-4" />}
               Sign out
             </Button>
-            <Button type="button" onClick={() => setIsOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => setIsOpen(false)}
+            >
               Cancel
             </Button>
           </DialogFooter>
