@@ -13,12 +13,14 @@ import "./config/passport.config"
 import passport from "passport";
 import isAuthenticated from "./middleware/isAuthenticated.middleware";
 
-const app=express();
-const BASE_PATH=config.BASE_PATH;
+const app = express();
+const BASE_PATH = config.BASE_PATH;
+
+app.set("trust proxy", 1);
 
 app.use(express.json());
 
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
     session({
@@ -27,24 +29,29 @@ app.use(
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         secure: config.NODE_ENV === "production",
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: config.NODE_ENV === "production" ? "none" : "lax",
     })
-)
-
-
-
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-
 
 app.use(
     cors({
         origin: config.FRONTEND_ORIGIN,
         credentials: true,
     })
-)
+);
+
+// Serverless DB connection middleware
+app.use(async (req, res, next) => {
+    try {
+        await connectDatabase();
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
 
 
 app.get(
@@ -97,7 +104,11 @@ app.use(`${BASE_PATH}/task`, isAuthenticated, taskRoutes);
 app.use(errorHandler);
 
 
-app.listen(config.PORT, async ()=>{
-    console.log(`Server is running on port ${config.PORT}`);
-    await connectDatabase();
-})
+if (process.env.NODE_ENV !== "production") {
+    app.listen(config.PORT, async () => {
+        console.log(`Server is running on port ${config.PORT}`);
+        await connectDatabase();
+    });
+}
+
+export default app;

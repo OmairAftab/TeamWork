@@ -1,13 +1,22 @@
 import mongoose from 'mongoose';
 import { config } from "./app.config";
 
-export const connectDatabase= async ()=>{
-    try{
-        await mongoose.connect(config.MONGO_URI);
-        console.log("Connected to monogdb atlas successfully");
+let isConnected = false;
+
+export const connectDatabase = async () => {
+    if (isConnected || mongoose.connection.readyState >= 1) {
+        return;
     }
-    catch(err){
+
+    try {
+        const db = await mongoose.connect(config.MONGO_URI);
+        isConnected = !!db.connections[0].readyState;
+        console.log("Connected to mongodb atlas successfully");
+    } catch (err) {
         console.error('Error connecting to database:', err);
-        process.exit(1); // Exit the process with an error code
+        if (config.NODE_ENV !== "production") {
+            process.exit(1);
+        }
+        throw err;
     }
-}
+};
