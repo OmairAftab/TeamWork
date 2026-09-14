@@ -1,4 +1,4 @@
-﻿# 🚀 TeamWork - Collaborative Workspace & Project Management Platform
+# 🚀 TeamWork - Collaborative Workspace & Project Management Platform
 
 TeamWork is a modern, full-stack collaborative project and task management application designed for agile teams. It provides workspaces, projects, task tracking (Kanban & Table views), role-based access control (RBAC), and team collaboration features.
 
@@ -8,8 +8,8 @@ TeamWork is a modern, full-stack collaborative project and task management appli
 
 ### 🏢 Workspace Management
 - Create, customize, and switch between multiple workspaces.
-- Workspace-level member management with granular roles (**Owner**, **Admin**, **Member**).
-- Invite team members with unique workspace invite links.
+- Workspace-level member management with granular roles (**Owner**, **Member**).
+- Dedicated Workspace Settings and Members directory.
 
 ### 📁 Project Management
 - Create and organize projects under specific workspaces.
@@ -19,8 +19,16 @@ TeamWork is a modern, full-stack collaborative project and task management appli
 - **Table & Kanban Views**: Filter tasks by status, priority, and assigned member.
 - Real-time task creation, editing, status transitions, and pagination.
 - **Role-Based Task Permissions**:
-  - **Owners & Admins**: Full task lifecycle control (create, reassign, update metadata, delete).
-  - **Members**: Can update the status of tasks specifically assigned to them.
+  - **Owners**: Full task lifecycle control (create, reassign, update metadata, delete).
+  - **Members**: Can view all tasks and update the status of tasks specifically assigned to them.
+
+### ✉️ Inviting Members to a Workspace
+- **Invite Link Generation**: Workspace Ownerscan generate a unique invite link from the Members  page.
+- **Copy & Share**: Copy the shareable join link directly to clipboard.
+- **Seamless Join Flow**:
+  - When an invited user opens the invite link (`/invite/workspace/:inviteCode/join`), they are presented with an invite acceptance screen showing workspace details.
+  - Upon clicking **Join Workspace**, the user is automatically added to the workspace as a **Member** and redirected to the workspace dashboard.
+  - If the invited user is not logged in, they are guided to log in or create an account first, after which they can join seamlessly.
 
 ### 🔐 Authentication & Security
 - Secure Email & Password authentication with password hashing (bcrypt).
@@ -60,7 +68,7 @@ TeamWork/
 │   │   ├── components/         # Reusable UI components & dialogs
 │   │   ├── context/            # Authentication & workspace context providers
 │   │   ├── hooks/              # Custom React Query & utility hooks
-│   │   ├── page/               # Application pages (Auth, Dashboard, Tasks, Settings, etc.)
+│   │   ├── page/               # Application pages (Auth, Dashboard, Tasks, Members, Settings, Invite)
 │   │   ├── routes/             # Protected and public route configurations
 │   │   └── types/              # TypeScript interface & type definitions
 │   └── vercel.json             # Vercel SPA routing configuration
@@ -92,7 +100,7 @@ TeamWork/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/OmairAftab/TeamWork.git
+git clone https://github.com/your-username/TeamWork.git
 cd TeamWork
 ```
 
@@ -145,4 +153,3 @@ cd TeamWork
    ```
 4. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
----
